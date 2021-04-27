@@ -1,0 +1,10 @@
+[1] "/Volumes/nfs/mm-isilon/bioinfcore/ActiveProjects/Oculomics_tomwgard_CU3-power_analysis_cgates_jingquma/cgates_analysis"
+[90m# A tibble: 6 x 4[39m
+  Phenotype Diameter  Abundance Percentage
+  [3m[90m<chr>[39m[23m        [3m[90m<dbl>[39m[23m      [3m[90m<dbl>[39m[23m      [3m[90m<dbl>[39m[23m
+[90m1[39m Control         96 [4m1[24m460[4m0[24m[4m0[24m[4m0[24m000      0.290
+[90m2[39m Control        129  363[4m0[24m[4m0[24m[4m0[24m000      0.07 
+[90m3[39m Control        143  280[4m0[24m[4m0[24m[4m0[24m000      0.05 
+[90m4[39m Control         89 [4m1[24m270[4m0[24m[4m0[24m[4m0[24m000      0.17 
+[90m5[39m Control        116  575[4m0[24m[4m0[24m[4m0[24m000      0.08 
+[90m6[39m Control        135  408[4m0[24m[4m0[24m[4m0[24m000      0.05 

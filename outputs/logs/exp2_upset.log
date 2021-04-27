@@ -1,0 +1,293 @@
+[1] "/Volumes/nfs/mm-isilon/bioinfcore/ActiveProjects/Oculomics_tomwgard_CU3-power_analysis_cgates_jingquma/cgates_analysis"
+
+> library(cowplot)
+
+> library(GGally)
+
+> library(patchwork)
+
+> library(tidyverse)
+
+> library(RColorBrewer)
+
+> if (!require(devtools, quietly=T)) install.packages("devtools")
+
+> if (!require(ComplexUpset, quietly=T)) devtools::install_github("krassowski/complex-upset")
+
+> library(ComplexUpset) #https://krassowski.github.io/complex-upset/articles/Examples_Python.html#11-advanced-usage-examples
+
+> ###############################################################################
+> ## Setup data structures
+> ####################################### .... [TRUNCATED] 
+
+> dat_gene <- dat_gene %>% rename(
++   Pool1.6=Pool12,
++   Pool1.7=Pool13,
++   Pool1.8=Pool14,
++   Pool1.9=Pool15
++ )
+
+> #view(dat_gene)
+> 
+> ###############################################################################
+> ## Load sample phenotype design
+> # Focus to  .... [TRUNCATED] 
+
+> pheno$sample <- recode(pheno$sample, 
++                        `Pool12`="Pool1.6",
++                        `Pool13`="Pool1.7",
++                    .... [TRUNCATED] 
+
+> #pheno$sample
+> 
+> pheno$plex <- recode(pheno$plex, 
++                      `0`="1",
++                      `1`="2.1",
++                      `2`="2 ..." ... [TRUNCATED] 
+
+> #pheno$plex
+> 
+> batch="B"
+
+> myplex=as.character(pheno$sample[pheno$batch==batch])
+
+> #view(myplex)
+> all_abundances = dat_gene[names(dat_gene) %in% myplex]
+
+> design=pheno[pheno$sample %in% colnames(all_abundances),]
+
+> #Reset phenotype names
+> design$phenotype <- recode(design$phenotype, 
++                            `PDR-Clear` = "PDR-L",
++                         .... [TRUNCATED] 
+
+> design=design[match(colnames(all_abundances), design$sample ),]
+
+> ###############################################################################
+> ## Setup dfs to drive plots
+> 
+> ###
+> temp_plex_df = all_abundanc .... [TRUNCATED] 
+
+> #temp_plex_df
+> 
+> temp_plex_dropout_full_df = temp_plex_df[,c('protein', 'plex', 'plex_dropout_full')] %>% 
++   pivot_wider(names_from='plex', name .... [TRUNCATED] 
+
+> temp_plex_dropout_partial_df = temp_plex_df[,c('protein', 'plex', 'plex_dropout_partial')] %>% 
++   pivot_wider(names_from='plex', names_prefix='ple .... [TRUNCATED] 
+
+> temp_plex_dropout_df = temp_plex_dropout_full_df %>% 
++   inner_join(temp_plex_dropout_partial_df) %>%
++   select(plex_dropout_full, plex_dropout_pa .... [TRUNCATED] 
+
+> temp_plex_dropout_df$dropout = factor(temp_plex_dropout_df$dropout, 
++                                       levels=c('no dropout', 'interplex dropo .... [TRUNCATED] 
+
+> temp_df = all_abundances %>%
++   as_tibble(rownames=NA) %>%
++   rownames_to_column(var='protein') %>%
++   mutate_at(vars(-protein), negate(is.na)) % .... [TRUNCATED] 
+
+> #temp_df
+> 
+> 
+> temp_sample_df = design[,c('sample', 'phenotype', 'plex')]
+
+> temp_sample_df$phenotype_f = factor(temp_sample_df$phenotype,
++                                     levels=c('Pool1', 'Control', 'PDR-L', 'PDR-M', ' .... [TRUNCATED] 
+
+> temp_sample_df$plex_f = factor(temp_sample_df$plex)
+
+> temp_sample_df$sample_f = factor(temp_sample_df$sample,
++                                  levels=temp_sample_df$sample[order(temp_sample_df$phenoty .... [TRUNCATED] 
+
+> temp_sample_df = temp_sample_df[order(temp_sample_df$sample_f),]
+
+> #temp_sample_df
+> 
+> 
+> 
+> ###############################################################################
+> ## Build plots helper functions
+> ##### .... [TRUNCATED] 
+
+> ## Builds the sample annotation strips on side (ala pheatmap)
+> make_annotation_strip_fn = function (df, col, fill, fill_palette, legend_name, text_ .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Build the plots
+> ############################################# .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Exp2: Make upset plot sorted by phenotype (exp2_upset_by_phenot .... [TRUNCATED] 
+
+> set_size_limits_y = c(875,1000)
+
+> set_size_breaks = c(875, 900, 925, 950, 975, 1000)
+
+> upset_plot = make_upset_plot_fn(temp_df, 
++                                 temp_sample_df$sample_f,
++                                 intersection_ .... [TRUNCATED] 
+
+> #plot(upset_plot$plot)
+> 
+> # Add a line at break between pool|control and control|PDR
+> upset_plot$intersection_matrix = upset_plot$intersection_ma .... [TRUNCATED] 
+
+> upset_plot$intersection_matrix = upset_plot$intersection_matrix + 
++   geom_hline(yintercept = 22.5, color=alpha('red', 0.3), size=3)
+
+> plex_annotation_strip = make_annotation_strip_fn(temp_sample_df, 'sample_f', 'plex_f', colors_sequential_greens, 'TMT plex', text_size)
+
+> pheno_annotation_strip = make_annotation_strip_fn(temp_sample_df, 'sample_f', 'phenotype_f', colors_subphenotype, 'phenotype', text_size)
+
+> ###############################################################################
+> ## Assemble plot components
+> 
+> layout <- '
++ #A##X
++ BCDEY
++ '
+
+> plot_elements_by_pheno = list(intersection_barplot = upset_plot$intersection_barplot,
++                              measured_proteins_barplot = ups .... [TRUNCATED] 
+
+> final_plot = wrap_plots(A = upset_plot$intersection_barplot,
++            B = upset_plot$measured_proteins_barplot,
++            C = upset_plot$inte .... [TRUNCATED] 
+
+> plot(final_plot)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-by_phenotype.pdf'), 
++        plot=final_plot, 
++        width=17, height=15, scale=0.75)
+
+> ###############################################################################
+> ## Make upset plot as above but sorted by plex
+> 
+> sample_plex_df .... [TRUNCATED] 
+
+> sample_plex_df$sample_f = factor(sample_plex_df$sample,
++                                  levels=sample_plex_df$sample[order(sample_plex_df$plex_f, .... [TRUNCATED] 
+
+> sample_plex_df = sample_plex_df[order(sample_plex_df$sample_f),]
+
+> intersection_breaks = c(0,100,727)
+
+> set_size_limits_y = c(875,1000)
+
+> set_size_breaks = c(875, 900, 925, 950, 975, 1000)
+
+> upset_plot = make_upset_plot_fn(temp_df, 
++                                 sample_plex_df$sample_f,
++                                 intersection_ .... [TRUNCATED] 
+
+> #plot(upset_plot$plot)
+> 
+> # Highlihght the singleton plex sets
+> df <- as.data.frame(
++       matrix(c(3, 3, 1, 9, 
++                6, 6, 19, 27, .... [TRUNCATED] 
+
+> colnames(df) = c('x1', 'x2', 'y1', 'y2')
+
+> #df
+> upset_plot$intersection_matrix =   upset_plot$intersection_matrix + 
++   geom_hline(yintercept = 9.5, color=alpha('green', 0.3), size=3) +
++   .... [TRUNCATED] 
+
+> #plot(upset_plot$intersection_matrix)
+> 
+> plex_annotation_strip = make_annotation_strip_fn(sample_plex_df, 'sample_f', 'plex_f', colors_sequential_ .... [TRUNCATED] 
+
+> pheno_annotation_strip = make_annotation_strip_fn(sample_plex_df, 'sample_f', 'phenotype_f', colors_subphenotype, 'phenotype', text_size)
+
+> layout <- '
++ #A##X
++ BCDEY
++ '
+
+> plot_elements_by_plex = list(intersection_barplot = upset_plot$intersection_barplot,
++                              measured_proteins_barplot = upse .... [TRUNCATED] 
+
+> final_plot = wrap_plots(A = upset_plot$intersection_barplot,
++                         B = upset_plot$measured_proteins_barplot,
++                   .... [TRUNCATED] 
+
+> plot(final_plot)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-by_plex.pdf'),
++        plot=final_plot,
++        width=17, height=15, scale=0.75)
+
+> ###############################################################################
+> ## Make composite upset plot combining both plots above
+> 
+> layou .... [TRUNCATED] 
+
+> final_plot = wrap_plots(A = plot_elements_by_plex$intersection_barplot,
++                         B = plot_elements_by_plex$measured_proteins_barplo .... [TRUNCATED] 
+
+> plot(final_plot)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-composite.pdf'),
++        plot=final_plot,
++        width=17, height=25, scale=0.75)
+
+> ###############################################################################
+> ## Summary stats for figures
+> ################################### .... [TRUNCATED] 
+[90m# A tibble: 1,157 x 38[39m
+[90m# Groups:   vars(-protein) [1][39m
+   PPV193 PPV229 PPV232 PPV423 PPV503 PPV508 PPV516 PPV526 Pool1.6 PPV242 PPV334 PPV377 PPV554 PPV715 PPV728 PPV661 PPV808 Pool1.7 PPV519 PPV546 PPV780 PPV842 PPV856 PPV942 PPV890 PPV934
+   [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m   [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m   [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m 
+[90m 1[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 2[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 3[39m FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 4[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 5[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 6[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 7[39m FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 8[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 9[39m FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m10[39m FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE 
+[90m# … with 1,147 more rows, and 12 more variables: Pool1.8 [3m[90m<lgl>[90m[23m, PPV875 [3m[90m<lgl>[90m[23m, PPV988 [3m[90m<lgl>[90m[23m, PPV315 [3m[90m<lgl>[90m[23m, PPV414 [3m[90m<lgl>[90m[23m, PPV449 [3m[90m<lgl>[90m[23m, PPV523 [3m[90m<lgl>[90m[23m, PPV632 [3m[90m<lgl>[90m[23m, PPV682 [3m[90m<lgl>[90m[23m,[39m
+[90m#   Pool1.9 [3m[90m<lgl>[90m[23m, `vars(-protein)` [3m[90m<quos>[90m[23m, dropout [3m[90m<fct>[90m[23m[39m
+
+> # How many proteins measured by each sample
+> summary(colSums(temp_df[,temp_sample_df$sample_f]))
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  886.0   924.0   956.5   946.1   977.2   984.0 
+
+> #Count if different protein dropout categories
+> summary(temp_df$dropout)
+       no dropout interplex dropout intraplex dropout 
+              727               390                40 
+
+> # Proteins not measured in pools
+> all_abundances[rowSums(temp_df[,c('Pool1.6', 'Pool1.7', 'Pool1.8', 'Pool1.9')])==0, ]
+           PPV193    PPV229     PPV232 PPV423      PPV503      PPV508      PPV516     PPV526 Pool1.6 PPV242 PPV334 PPV377 PPV554 PPV715 PPV728 PPV661 PPV808 Pool1.7 PPV519    PPV546
+CSN1S1         NA        NA         NA     NA          NA          NA          NA         NA      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA     NA 0.4208225
+SLC25A5 0.6857619 0.7166726 0.70162197     NA 0.002922355 0.007920224  0.01556412         NA      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA     NA        NA
+TARS1   0.2611738 0.7334875 0.06419772     NA 0.779435423 0.498831763 -0.36956184 -0.2192749      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA     NA        NA
+           PPV780   PPV842   PPV856    PPV942     PPV890     PPV934 Pool1.8 PPV875 PPV988 PPV315 PPV414 PPV449 PPV523 PPV632 PPV682 Pool1.9
+CSN1S1  -1.820792 2.122511 1.669031 0.8676627 0.03636966 -0.2295763      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA
+SLC25A5        NA       NA       NA        NA         NA         NA      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA
+TARS1          NA       NA       NA        NA         NA         NA      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA
+
+> # Proteins measured consistently by exactly one plex 
+> singleton_plex_proteins = colSums(temp_plex_dropout_full_df[(rowSums(temp_plex_dropout_full_ .... [TRUNCATED] 
+
+> singleton_plex_proteins
+plex_dropout_full_2.1 plex_dropout_full_2.2 plex_dropout_full_2.3 plex_dropout_full_2.4 
+                   67                    23                    17                    44 
+
+> sum(singleton_plex_proteins)
+[1] 151
+
+> print('Done')
+[1] "Done"
+
+> ###############################################################################
+> log_stop()

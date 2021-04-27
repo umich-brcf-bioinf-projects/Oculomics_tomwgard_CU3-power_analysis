@@ -1,0 +1,1359 @@
+[1] "/Volumes/nfs/mm-isilon/bioinfcore/ActiveProjects/Oculomics_tomwgard_CU3-power_analysis_cgates_jingquma/cgates_analysis"
+
+> library(cowplot)
+
+> library(GGally)
+
+> library(patchwork)
+
+> library(tidyverse)
+
+> library(RColorBrewer)
+
+> if (!require(devtools, quietly=T)) install.packages("devtools")
+
+> if (!require(ComplexUpset, quietly=T)) devtools::install_github("krassowski/complex-upset")
+
+> library(ComplexUpset) #https://krassowski.github.io/complex-upset/articles/Examples_Python.html#11-advanced-usage-examples
+
+> ###############################################################################
+> ## Setup data structures
+> ####################################### .... [TRUNCATED] 
+-/                                                                                                                                                                                            
+> normalized_data_df=raw_df[grepl("*Normalized*", colnames(raw_df))]
+
+> colnames(normalized_data_df)=sapply(sapply(strsplit(colnames(normalized_data_df), split = ","), function(x){x[[3]]}), trimws)
+
+> normalized_data_df <- normalized_data_df %>% rename(
++   `Pool1.1`="Pool 1",
++   `Pool1.2`="Pool 2",
++   `Pool1.3`="Pool 3",
++   `Pool1.4`="Pool 4", .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Load sample phenotype design
+> # Focus to experiment 2 (batch B .... [TRUNCATED] 
+
+> pheno$sample <- recode(pheno$sample, 
++                        `Pool1-1`="Pool1.1",
++                        `Pool1-2`="Pool1.2",
++                  .... [TRUNCATED] 
+
+> #pheno$sample
+> 
+> batch="A"
+
+> myplex=as.character(pheno$sample[pheno$batch==batch])
+
+> #view(myplex)
+> all_abundances = normalized_data_df[names(normalized_data_df) %in% myplex]
+
+> #names(normalized_data_df)
+> 
+> design=pheno[pheno$sample %in% colnames(all_abundances),]
+
+> design=design[match(colnames(all_abundances), design$sample ),]
+
+> temp_df = all_abundances %>%
++   as_tibble(rownames=NA) %>%
++   mutate_all(negate(is.na))
+
+> # Exclude proteins which were not assigned an abundance in any sample
+> temp_df = temp_df[rowSums(temp_df)>0,]
+
+> temp_sample_df = design[,c('sample', 'phenotype', 'plex')]
+
+> temp_sample_df$phenotype_f = recode_factor(temp_sample_df$phenotype,
++                                            `Pool1` = 'technical replicates',
+ .... [TRUNCATED] 
+
+> #head(temp_sample_df)
+> temp_sample_df$plex_f = factor(temp_sample_df$plex)
+
+> temp_sample_df$sample_f = factor(temp_sample_df$sample,
++                                  levels=temp_sample_df$sample[order(temp_sample_df$phenoty .... [TRUNCATED] 
+
+> temp_sample_df = temp_sample_df[order(temp_sample_df$sample_f),]
+
+> #temp_sample_df
+> 
+> 
+> 
+> ###############################################################################
+> ## Build plots helper functions
+> ##### .... [TRUNCATED] 
+
+> ## Builds the sample annotation strips on side (ala pheatmap)
+> make_annotation_strip_fn = function (df, col, fill, fill_palette, legend_name, text_ .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Build the plots
+> ############################################# .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Exp2: Make upset plot sorted by phenotype (exp2_upset_by_phenot .... [TRUNCATED] 
+
+> set_size_limits_y = c(980,1000)
+
+> upset_plot = make_upset_plot_fn(temp_df, 
++                                 temp_sample_df$sample_f,
++                                 intersection_ .... [TRUNCATED] 
+
+> #plot(upset_plot$plot)
+> 
+> pheno_annotation_strip = make_annotation_strip_fn(temp_sample_df, 'sample_f', 'phenotype_f', colors_subphenotype, '', ,  .... [TRUNCATED] 
+
+> # Oculomics analysis, visualizations for proteomics experiment 2
+> # jinquma/ cgates 
+> # 2/22/2021
+> 
+> #setwd('/nfs/mm-isilon/bioinfcore/ActivePro .... [TRUNCATED] 
+
+> script_name = "exp2_upset" 
+
+> log_start(paste0(output_logs_dir, script_name, ".log")) 
+[1] "/Volumes/nfs/mm-isilon/bioinfcore/ActiveProjects/Oculomics_tomwgard_CU3-power_analysis_cgates_jingquma/cgates_analysis"
+
+> library(cowplot)
+
+> library(GGally)
+
+> library(patchwork)
+
+> library(tidyverse)
+
+> library(RColorBrewer)
+
+> if (!require(devtools, quietly=T)) install.packages("devtools")
+
+> if (!require(ComplexUpset, quietly=T)) devtools::install_github("krassowski/complex-upset")
+
+> library(ComplexUpset) #https://krassowski.github.io/complex-upset/articles/Examples_Python.html#11-advanced-usage-examples
+
+> ###############################################################################
+> ## Setup data structures
+> ####################################### .... [TRUNCATED] 
+
+> dat_gene <- dat_gene %>% rename(
++   Pool1.6=Pool12,
++   Pool1.7=Pool13,
++   Pool1.8=Pool14,
++   Pool1.9=Pool15
++ )
+
+> #view(dat_gene)
+> 
+> ###############################################################################
+> ## Load sample phenotype design
+> # Focus to  .... [TRUNCATED] 
+
+> pheno$sample <- recode(pheno$sample, 
++                        `Pool12`="Pool1.6",
++                        `Pool13`="Pool1.7",
++                    .... [TRUNCATED] 
+
+> #pheno$sample
+> 
+> pheno$plex <- recode(pheno$plex, 
++                      `0`="1",
++                      `1`="2.1",
++                      `2`="2 ..." ... [TRUNCATED] 
+
+> #pheno$plex
+> 
+> batch="B"
+
+> myplex=as.character(pheno$sample[pheno$batch==batch])
+
+> #view(myplex)
+> all_abundances = dat_gene[names(dat_gene) %in% myplex]
+
+> design=pheno[pheno$sample %in% colnames(all_abundances),]
+
+> #Reset phenotype names
+> design$phenotype <- recode(design$phenotype, 
++                            `PDR-Clear` = "PDR-L",
++                         .... [TRUNCATED] 
+
+> design=design[match(colnames(all_abundances), design$sample ),]
+
+> ###############################################################################
+> ## Setup dfs to drive plots
+> 
+> ###
+> temp_plex_df = all_abundanc .... [TRUNCATED] 
+
+> #temp_plex_df
+> 
+> temp_plex_dropout_full_df = temp_plex_df[,c('protein', 'plex', 'plex_dropout_full')] %>% 
++   pivot_wider(names_from='plex', name .... [TRUNCATED] 
+
+> temp_plex_dropout_partial_df = temp_plex_df[,c('protein', 'plex', 'plex_dropout_partial')] %>% 
++   pivot_wider(names_from='plex', names_prefix='ple .... [TRUNCATED] 
+
+> temp_plex_dropout_df = temp_plex_dropout_full_df %>% 
++   inner_join(temp_plex_dropout_partial_df) %>%
++   select(plex_dropout_full, plex_dropout_pa .... [TRUNCATED] 
+
+> temp_plex_dropout_df$dropout = factor(temp_plex_dropout_df$dropout, 
++                                       levels=c('no dropout', 'interplex dropo .... [TRUNCATED] 
+
+> temp_df = all_abundances %>%
++   as_tibble(rownames=NA) %>%
++   rownames_to_column(var='protein') %>%
++   mutate_at(vars(-protein), negate(is.na)) % .... [TRUNCATED] 
+
+> #temp_df
+> 
+> 
+> temp_sample_df = design[,c('sample', 'phenotype', 'plex')]
+
+> temp_sample_df$phenotype_f = factor(temp_sample_df$phenotype,
++                                     levels=c('Pool1', 'Control', 'PDR-L', 'PDR-M', ' .... [TRUNCATED] 
+
+> temp_sample_df$plex_f = factor(temp_sample_df$plex)
+
+> temp_sample_df$sample_f = factor(temp_sample_df$sample,
++                                  levels=temp_sample_df$sample[order(temp_sample_df$phenoty .... [TRUNCATED] 
+
+> temp_sample_df = temp_sample_df[order(temp_sample_df$sample_f),]
+
+> #temp_sample_df
+> 
+> 
+> 
+> ###############################################################################
+> ## Build plots helper functions
+> ##### .... [TRUNCATED] 
+
+> ## Builds the sample annotation strips on side (ala pheatmap)
+> make_annotation_strip_fn = function (df, col, fill, fill_palette, legend_name, text_ .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Build the plots
+> ############################################# .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Exp2: Make upset plot sorted by phenotype (exp2_upset_by_phenot .... [TRUNCATED] 
+
+> set_size_limits_y = c(875,1000)
+
+> set_size_breaks = c(875, 900, 925, 950, 975, 1000)
+
+> upset_plot = make_upset_plot_fn(temp_df, 
++                                 temp_sample_df$sample_f,
++                                 intersection_ .... [TRUNCATED] 
+
+> #plot(upset_plot$plot)
+> 
+> # Add a line at break between pool|control and control|PDR
+> upset_plot$intersection_matrix = upset_plot$intersection_ma .... [TRUNCATED] 
+
+> upset_plot$intersection_matrix = upset_plot$intersection_matrix + 
++   geom_hline(yintercept = 22.5, color=alpha('red', 0.3), size=3)
+
+> plex_annotation_strip = make_annotation_strip_fn(temp_sample_df, 'sample_f', 'plex_f', colors_sequential_greens, 'TMT plex', text_size)
+
+> pheno_annotation_strip = make_annotation_strip_fn(temp_sample_df, 'sample_f', 'phenotype_f', colors_subphenotype, 'phenotype', text_size)
+
+> ###############################################################################
+> ## Assemble plot components
+> 
+> layout <- '
++ #A##X
++ BCDEY
++ '
+
+> plot_elements_by_pheno = list(intersection_barplot = upset_plot$intersection_barplot,
++                              measured_proteins_barplot = ups .... [TRUNCATED] 
+
+> final_plot = wrap_plots(A = upset_plot$intersection_barplot,
++            B = upset_plot$measured_proteins_barplot,
++            C = upset_plot$inte .... [TRUNCATED] 
+
+> plot(final_plot)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-by_phenotype.pdf'), 
++        plot=final_plot, 
++        width=17, height=15, scale=0.75)
+
+> ###############################################################################
+> ## Make upset plot as above but sorted by plex
+> 
+> sample_plex_df .... [TRUNCATED] 
+
+> sample_plex_df$sample_f = factor(sample_plex_df$sample,
++                                  levels=sample_plex_df$sample[order(sample_plex_df$plex_f, .... [TRUNCATED] 
+
+> sample_plex_df = sample_plex_df[order(sample_plex_df$sample_f),]
+
+> intersection_breaks = c(0,100,727)
+
+> set_size_limits_y = c(875,1000)
+
+> set_size_breaks = c(875, 900, 925, 950, 975, 1000)
+
+> upset_plot = make_upset_plot_fn(temp_df, 
++                                 sample_plex_df$sample_f,
++                                 intersection_ .... [TRUNCATED] 
+
+> #plot(upset_plot$plot)
+> 
+> # Highlihght the singleton plex sets
+> df <- as.data.frame(
++       matrix(c(3, 3, 1, 9, 
++                6, 6, 19, 27, .... [TRUNCATED] 
+
+> colnames(df) = c('x1', 'x2', 'y1', 'y2')
+
+> #df
+> upset_plot$intersection_matrix =   upset_plot$intersection_matrix + 
++   geom_hline(yintercept = 9.5, color=alpha('green', 0.3), size=3) +
++   .... [TRUNCATED] 
+
+> #plot(upset_plot$intersection_matrix)
+> 
+> plex_annotation_strip = make_annotation_strip_fn(sample_plex_df, 'sample_f', 'plex_f', colors_sequential_ .... [TRUNCATED] 
+
+> pheno_annotation_strip = make_annotation_strip_fn(sample_plex_df, 'sample_f', 'phenotype_f', colors_subphenotype, 'phenotype', text_size)
+
+> layout <- '
++ #A##X
++ BCDEY
++ '
+
+> plot_elements_by_plex = list(intersection_barplot = upset_plot$intersection_barplot,
++                              measured_proteins_barplot = upse .... [TRUNCATED] 
+
+> final_plot = wrap_plots(A = upset_plot$intersection_barplot,
++                         B = upset_plot$measured_proteins_barplot,
++                   .... [TRUNCATED] 
+
+> plot(final_plot)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-by_plex.pdf'),
++        plot=final_plot,
++        width=17, height=15, scale=0.75)
+
+> ###############################################################################
+> ## Make composite upset plot combining both plots above
+> 
+> layou .... [TRUNCATED] 
+
+> final_plot = wrap_plots(A = plot_elements_by_plex$intersection_barplot,
++                         B = plot_elements_by_plex$measured_proteins_barplo .... [TRUNCATED] 
+
+> plot(final_plot)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-composite.pdf'),
++        plot=final_plot,
++        width=17, height=25, scale=0.75)
+
+> ###############################################################################
+> ## Summary stats for figures
+> ################################### .... [TRUNCATED] 
+[90m# A tibble: 1,157 x 38[39m
+[90m# Groups:   vars(-protein) [1][39m
+   PPV193 PPV229 PPV232 PPV423 PPV503 PPV508 PPV516 PPV526 Pool1.6 PPV242 PPV334 PPV377 PPV554 PPV715 PPV728 PPV661 PPV808 Pool1.7 PPV519 PPV546 PPV780 PPV842 PPV856 PPV942 PPV890 PPV934
+   [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m   [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m   [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m  [3m[90m<lgl>[39m[23m 
+[90m 1[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 2[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 3[39m FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 4[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 5[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 6[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 7[39m FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 8[39m TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE    TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m 9[39m FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE   TRUE  
+[90m10[39m FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE   FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE  FALSE 
+[90m# … with 1,147 more rows, and 12 more variables: Pool1.8 [3m[90m<lgl>[90m[23m, PPV875 [3m[90m<lgl>[90m[23m, PPV988 [3m[90m<lgl>[90m[23m, PPV315 [3m[90m<lgl>[90m[23m, PPV414 [3m[90m<lgl>[90m[23m, PPV449 [3m[90m<lgl>[90m[23m, PPV523 [3m[90m<lgl>[90m[23m, PPV632 [3m[90m<lgl>[90m[23m, PPV682 [3m[90m<lgl>[90m[23m,[39m
+[90m#   Pool1.9 [3m[90m<lgl>[90m[23m, `vars(-protein)` [3m[90m<quos>[90m[23m, dropout [3m[90m<fct>[90m[23m[39m
+
+> # How many proteins measured by each sample
+> summary(colSums(temp_df[,temp_sample_df$sample_f]))
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  886.0   924.0   956.5   946.1   977.2   984.0 
+
+> #Count if different protein dropout categories
+> summary(temp_df$dropout)
+       no dropout interplex dropout intraplex dropout 
+              727               390                40 
+
+> # Proteins not measured in pools
+> all_abundances[rowSums(temp_df[,c('Pool1.6', 'Pool1.7', 'Pool1.8', 'Pool1.9')])==0, ]
+           PPV193    PPV229     PPV232 PPV423      PPV503      PPV508      PPV516     PPV526 Pool1.6 PPV242 PPV334 PPV377 PPV554 PPV715 PPV728 PPV661 PPV808 Pool1.7 PPV519    PPV546
+CSN1S1         NA        NA         NA     NA          NA          NA          NA         NA      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA     NA 0.4208225
+SLC25A5 0.6857619 0.7166726 0.70162197     NA 0.002922355 0.007920224  0.01556412         NA      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA     NA        NA
+TARS1   0.2611738 0.7334875 0.06419772     NA 0.779435423 0.498831763 -0.36956184 -0.2192749      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA     NA        NA
+           PPV780   PPV842   PPV856    PPV942     PPV890     PPV934 Pool1.8 PPV875 PPV988 PPV315 PPV414 PPV449 PPV523 PPV632 PPV682 Pool1.9
+CSN1S1  -1.820792 2.122511 1.669031 0.8676627 0.03636966 -0.2295763      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA
+SLC25A5        NA       NA       NA        NA         NA         NA      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA
+TARS1          NA       NA       NA        NA         NA         NA      NA     NA     NA     NA     NA     NA     NA     NA     NA      NA
+
+> # Proteins measured consistently by exactly one plex 
+> singleton_plex_proteins = colSums(temp_plex_dropout_full_df[(rowSums(temp_plex_dropout_full_ .... [TRUNCATED] 
+
+> singleton_plex_proteins
+plex_dropout_full_2.1 plex_dropout_full_2.2 plex_dropout_full_2.3 plex_dropout_full_2.4 
+                   67                    23                    17                    44 
+
+> sum(singleton_plex_proteins)
+[1] 151
+
+> print('Done')
+[1] "Done"
+
+> ###############################################################################
+> log_stop()
+
+> # Oculomics analysis, visualizations for proteomics experiment 2
+> # jinquma/ cgates 
+> # 2/10/2021
+> 
+> #setwd('/nfs/mm-isilon/bioinfcore/ActivePro .... [TRUNCATED] 
+
+> script_name = "exp2_figures" 
+
+> log_start(paste0(output_logs_dir, script_name, ".log")) 
+[1] "/Volumes/nfs/mm-isilon/bioinfcore/ActiveProjects/Oculomics_tomwgard_CU3-power_analysis_cgates_jingquma/cgates_analysis"
+
+> library(GGally)
+
+> library(tidyverse)
+
+> library(RColorBrewer)
+
+> ###############################################################################
+> ## Setup data structures
+> ####################################### .... [TRUNCATED] 
+
+> dat_gene <- dat_gene %>% rename(
++   Pool1.6=Pool12,
++   Pool1.7=Pool13,
++   Pool1.8=Pool14,
++   Pool1.9=Pool15
++ )
+
+> #view(dat_gene)
+> 
+> ###############################################################################
+> ## Load sample phenotype design
+> # Focus to  .... [TRUNCATED] 
+
+> pheno$sample <- recode(pheno$sample, 
++    `Pool12`="Pool1.6",
++    `Pool13`="Pool1.7",
++    `Pool14`="Pool1.8",
++    `Pool15`="Pool1.9")
+
+> #pheno$sample
+> 
+> pheno$plex <- recode(pheno$plex, 
++                      `0`="1",
++                      `1`="2.1",
++                      `2`="2 ..." ... [TRUNCATED] 
+
+> #pheno$plex
+> 
+> batch="B"
+
+> myplex=as.character(pheno$sample[pheno$batch==batch])
+
+> #view(myplex)
+> all_abundances = dat_gene[names(dat_gene) %in% myplex]
+
+> mydat = dat_gene[names(dat_gene) %in% myplex]
+
+> mydat = mydat %>% drop_na() # Drop NAs to create dense matrix
+
+> #colnames(mydat)
+> 
+> design=pheno[pheno$sample %in% colnames(mydat),]
+
+> #Reset phenotype names
+> design$phenotype <- recode(design$phenotype, 
++        `PDR-Clear` = "PDR-L",
++        `PDR-Yellow` = "PDR-M",
++        `PD .... [TRUNCATED] 
+
+> design=design[match(colnames(mydat), design$sample ),]
+
+> #rownames_to_column(head(mydat), var='protein')
+> 
+> 
+> ###############################################################################
+> ## Plottin .... [TRUNCATED] 
+
+> temp_df$sample_f = factor(temp_df$sample)
+
+> temp_df$sample_f = reorder(temp_df$sample_f, temp_df$plex)
+
+> temp_df$plex_f = factor(temp_df$plex, levels=c('1','2','3','4'), ordered=TRUE)
+
+> temp_df = temp_df[order(temp_df$plex_f, temp_df$sample_f),]
+
+> #temp_df = na.omit(temp_df)
+> plex_colors = colors_sequential_greens
+
+> p = ggplot(temp_df, aes(x=sample_f, y=protein_abundance, fill=plex_f)) +
++   geom_boxplot(color=alpha('black', 0.7)) +
++   scale_fill_manual(values= .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-normalized_abundance_boxplot.pdf'), 
++        plot = p, 
++        width = 10, height = 1 .... [TRUNCATED] 
+
+> ###############################################################################
+> ## exp2_pairwise_scatter_pools.pdf
+> 
+> p_ <- GGally::print_if_int .... [TRUNCATED] 
+
+> grid.draw.gg <- function(x){
++   print(x)
++ }
+
+> # A custom upper function that simplifies the correlation matrix to suppress
+> # the "Corr:" label
+> upper_fn <- function(
++   data,
++   mapping,
++  .... [TRUNCATED] 
+
+> # Ensures the scales are consistent across subplots
+> lower_fun <- function(data,mapping, min_all, max_all){
++   ggplot(data = data, mapping = mappi .... [TRUNCATED] 
+
+> # Just print the sample names on the diag
+> diag_fn <- function (data, mapping) {
++   label <- gsub('`', '', mapping_string(mapping$x))
++   p <- gga .... [TRUNCATED] 
+
+> temp_normalized_pools_df = mydat %>% select(starts_with('Pool'))
+
+> #view(temp_normalized_pools_df)
+> 
+> max_all = max(temp_normalized_pools_df)
+
+> min_all = min(temp_normalized_pools_df)
+
+> p = ggpairs(temp_normalized_pools_df,
++             lower = list(continuous = wrap(lower_fun, min_all=min_all, max_all=max_all)),
++             uppe .... [TRUNCATED] 
+
+> p_(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-pairwise_scatter_pools.pdf'), 
++        plot = p, 
++        width = 10, height = 10)
+
+> ###############################################################################
+> ## pca.pdf
+> 
+> pc = prcomp(t(mydat))
+
+> temp = summary(pc)
+
+> plex_shapes = c(19, 17, 15, 18)
+
+> proportion_variance = 100 * round(summary(pc)$importance[2,][1:2], 2)
+
+> datt=data.frame(pheno=design$pheno,
++                 plex=factor(design$plex),
++                 PCA=pc$x[,1:2],
++                 sample=design$sa .... [TRUNCATED] 
+
+> #view(datt)
+> p=ggplot(datt, aes(x=PCA.PC1, y=PCA.PC2, shape=plex, color=phenotype)) + 
++   geom_point(size=5) +
++   scale_color_manual(values = col .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-pca.pdf'), 
++        plot = p, 
++        width = 10, height = 6.6)
+
+> ###############################################################################
+> ## Heatmap annotated with plasma/erythrocyte: all proteins
+> ## ex .... [TRUNCATED] 
+
+> protein_accession <- protein %>% separate(Proteins, c(NA, "uniprot", NA),  sep="\\|", remove = TRUE)
+
+> #head(protein_accession)
+> 
+> plasma=readxl::read_xlsx("inputs/List_20 Plasma Proteins_Uniprot Accession.xlsx", skip = 2) %>%select("Accession (Unip ..." ... [TRUNCATED] 
+-/                                                                                                                                                                                            
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[1:14]="Yes"
+
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[15:23]="No"
+
+> plasma = plasma %>% rename("uniprot"="Accession (Uniprot)", plasma="Depleted by Pierce Top12 Column (Yes/No)")
+
+> annotated_protein_accession = protein_accession %>% left_join(plasma)
+
+> rownames(annotated_protein_accession) = rownames(protein_accession)
+
+> annotated_protein_accession$plasma = recode(annotated_protein_accession$plasma,
++                                             "Yes"= "depleted but p ..." ... [TRUNCATED] 
+
+> erythrocyte_gene_symbols = c("ACTB", "HBG2", "CA2", "HBA1", "HBB", "HBD", "BLVRB", "BPGM", "PRDX2", "CA1", "CAT")
+
+> annotated_protein_accession$erythrocyte = rownames(annotated_protein_accession) %in% erythrocyte_gene_symbols
+
+> annotated_protein_accession$erythrocyte = ifelse(annotated_protein_accession$erythrocyte=="TRUE", "present", NA)
+
+> annotation_row=data.frame(
++   plasma=as.factor(annotated_protein_accession$plasma),
++   RBC=as.factor(annotated_protein_accession$erythrocyte),
++   .... [TRUNCATED] 
+
+> annotation_col = data.frame(phenotype=design$phenotype, plex=design$plex)
+
+> rownames(annotation_col)=colnames(mydat)
+
+> annotation_colors=list(phenotype=c("Pool1"=colors_subphenotype[1], 
++                                    "Control"=colors_subphenotype[2], 
++        .... [TRUNCATED] 
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-pca.pdf'), 
++        plot = p, 
++        width = 10, height = 6.6)
+
+> pdf(file=paste0(output_figures_dir, script_name, '-heatmap_all_annotated.pdf'),
++     width=14,
++     height=10)
+
+> pheatmap::pheatmap(
++   mydat,
++   clustering_method="ward.D",
++   color = colorRampPalette(c("blue", "white", "red"))(50),
++   annotation_row = ann .... [TRUNCATED] 
+
+> # Oculomics analysis, visualizations for proteomics experiment 2
+> # jinquma/ cgates 
+> # 2/10/2021
+> 
+> #setwd('/nfs/mm-isilon/bioinfcore/ActivePro .... [TRUNCATED] 
+
+> script_name = "exp2_figures" 
+
+> log_start(paste0(output_logs_dir, script_name, ".log")) 
+[1] "/Volumes/nfs/mm-isilon/bioinfcore/ActiveProjects/Oculomics_tomwgard_CU3-power_analysis_cgates_jingquma/cgates_analysis"
+
+> library(GGally)
+
+> library(tidyverse)
+
+> library(RColorBrewer)
+
+> ###############################################################################
+> ## Setup data structures
+> ####################################### .... [TRUNCATED] 
+
+> dat_gene <- dat_gene %>% rename(
++   Pool1.6=Pool12,
++   Pool1.7=Pool13,
++   Pool1.8=Pool14,
++   Pool1.9=Pool15
++ )
+
+> #view(dat_gene)
+> 
+> ###############################################################################
+> ## Load sample phenotype design
+> # Focus to  .... [TRUNCATED] 
+
+> pheno$sample <- recode(pheno$sample, 
++    `Pool12`="Pool1.6",
++    `Pool13`="Pool1.7",
++    `Pool14`="Pool1.8",
++    `Pool15`="Pool1.9")
+
+> #pheno$sample
+> 
+> pheno$plex <- recode(pheno$plex, 
++                      `0`="1",
++                      `1`="2.1",
++                      `2`="2 ..." ... [TRUNCATED] 
+
+> #pheno$plex
+> 
+> batch="B"
+
+> myplex=as.character(pheno$sample[pheno$batch==batch])
+
+> #view(myplex)
+> all_abundances = dat_gene[names(dat_gene) %in% myplex]
+
+> mydat = dat_gene[names(dat_gene) %in% myplex]
+
+> mydat = mydat %>% drop_na() # Drop NAs to create dense matrix
+
+> #colnames(mydat)
+> 
+> design=pheno[pheno$sample %in% colnames(mydat),]
+
+> #Reset phenotype names
+> design$phenotype <- recode(design$phenotype, 
++        `PDR-Clear` = "PDR-L",
++        `PDR-Yellow` = "PDR-M",
++        `PD .... [TRUNCATED] 
+
+> design=design[match(colnames(mydat), design$sample ),]
+
+> #rownames_to_column(head(mydat), var='protein')
+> 
+> 
+> ###############################################################################
+> ## Plottin .... [TRUNCATED] 
+
+> temp_df$sample_f = factor(temp_df$sample)
+
+> temp_df$sample_f = reorder(temp_df$sample_f, temp_df$plex)
+
+> temp_df$plex_f = factor(temp_df$plex, levels=c('2.1','2.2','2.3','2.4'), ordered=TRUE)
+
+> temp_df = temp_df[order(temp_df$plex_f, temp_df$sample_f),]
+
+> #temp_df = na.omit(temp_df)
+> plex_colors = colors_sequential_greens
+
+> p = ggplot(temp_df, aes(x=sample_f, y=protein_abundance, fill=plex_f)) +
++   geom_boxplot(color=alpha('black', 0.7)) +
++   scale_fill_manual(values= .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-normalized_abundance_boxplot.pdf'), 
++        plot = p, 
++        width = 10, height = 1 .... [TRUNCATED] 
+
+> ###############################################################################
+> ## exp2_pairwise_scatter_pools.pdf
+> 
+> p_ <- GGally::print_if_int .... [TRUNCATED] 
+
+> grid.draw.gg <- function(x){
++   print(x)
++ }
+
+> # A custom upper function that simplifies the correlation matrix to suppress
+> # the "Corr:" label
+> upper_fn <- function(
++   data,
++   mapping,
++  .... [TRUNCATED] 
+
+> # Ensures the scales are consistent across subplots
+> lower_fun <- function(data,mapping, min_all, max_all){
++   ggplot(data = data, mapping = mappi .... [TRUNCATED] 
+
+> # Just print the sample names on the diag
+> diag_fn <- function (data, mapping) {
++   label <- gsub('`', '', mapping_string(mapping$x))
++   p <- gga .... [TRUNCATED] 
+
+> temp_normalized_pools_df = mydat %>% select(starts_with('Pool'))
+
+> #view(temp_normalized_pools_df)
+> 
+> max_all = max(temp_normalized_pools_df)
+
+> min_all = min(temp_normalized_pools_df)
+
+> p = ggpairs(temp_normalized_pools_df,
++             lower = list(continuous = wrap(lower_fun, min_all=min_all, max_all=max_all)),
++             uppe .... [TRUNCATED] 
+
+> p_(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-pairwise_scatter_pools.pdf'), 
++        plot = p, 
++        width = 10, height = 10)
+
+> ###############################################################################
+> ## pca.pdf
+> 
+> pc = prcomp(t(mydat))
+
+> temp = summary(pc)
+
+> plex_shapes = c(19, 17, 15, 18)
+
+> proportion_variance = 100 * round(summary(pc)$importance[2,][1:2], 2)
+
+> datt=data.frame(pheno=design$pheno,
++                 plex=factor(design$plex),
++                 PCA=pc$x[,1:2],
++                 sample=design$sa .... [TRUNCATED] 
+
+> #view(datt)
+> p=ggplot(datt, aes(x=PCA.PC1, y=PCA.PC2, shape=plex, color=phenotype)) + 
++   geom_point(size=5) +
++   scale_color_manual(values = col .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-pca.pdf'), 
++        plot = p, 
++        width = 10, height = 6.6)
+
+> ###############################################################################
+> ## Heatmap annotated with plasma/erythrocyte: all proteins
+> ## ex .... [TRUNCATED] 
+
+> protein_accession <- protein %>% separate(Proteins, c(NA, "uniprot", NA),  sep="\\|", remove = TRUE)
+
+> #head(protein_accession)
+> 
+> plasma=readxl::read_xlsx("inputs/List_20 Plasma Proteins_Uniprot Accession.xlsx", skip = 2) %>%select("Accession (Unip ..." ... [TRUNCATED] 
+-/                                                                                                                                                                                            
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[1:14]="Yes"
+
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[15:23]="No"
+
+> plasma = plasma %>% rename("uniprot"="Accession (Uniprot)", plasma="Depleted by Pierce Top12 Column (Yes/No)")
+
+> annotated_protein_accession = protein_accession %>% left_join(plasma)
+
+> rownames(annotated_protein_accession) = rownames(protein_accession)
+
+> annotated_protein_accession$plasma = recode(annotated_protein_accession$plasma,
++                                             "Yes"= "depleted but p ..." ... [TRUNCATED] 
+
+> erythrocyte_gene_symbols = c("ACTB", "HBG2", "CA2", "HBA1", "HBB", "HBD", "BLVRB", "BPGM", "PRDX2", "CA1", "CAT")
+
+> annotated_protein_accession$erythrocyte = rownames(annotated_protein_accession) %in% erythrocyte_gene_symbols
+
+> annotated_protein_accession$erythrocyte = ifelse(annotated_protein_accession$erythrocyte=="TRUE", "present", NA)
+
+> annotation_row=data.frame(
++   plasma=as.factor(annotated_protein_accession$plasma),
++   RBC=as.factor(annotated_protein_accession$erythrocyte),
++   .... [TRUNCATED] 
+
+> annotation_col = data.frame(phenotype=design$phenotype, plex=design$plex)
+
+> rownames(annotation_col)=colnames(mydat)
+
+> annotation_colors=list(phenotype=c("Pool1"=colors_subphenotype[1], 
++                                    "Control"=colors_subphenotype[2], 
++        .... [TRUNCATED] 
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-pca.pdf'), 
++        plot = p, 
++        width = 10, height = 6.6)
+
+> pdf(file=paste0(output_figures_dir, script_name, '-heatmap_all_annotated.pdf'),
++     width=14,
++     height=10)
+
+> pheatmap::pheatmap(
++   mydat,
++   clustering_method="ward.D",
++   color = colorRampPalette(c("blue", "white", "red"))(50),
++   annotation_row = ann .... [TRUNCATED] 
+RStudioGD 
+        2 
+pdf 
+  4 
+pdf 
+  5 
+pdf 
+  6 
+null device 
+          1 
+ [1] "Pool1.6" "Pool1.7" "Pool1.8" "Pool1.9" "PPV193"  "PPV229"  "PPV232"  "PPV242"  "PPV315"  "PPV334"  "PPV377"  "PPV414"  "PPV423"  "PPV449"  "PPV503"  "PPV508"  "PPV516"  "PPV519" 
+[19] "PPV523"  "PPV526"  "PPV546"  "PPV554"  "PPV632"  "PPV661"  "PPV682"  "PPV715"  "PPV728"  "PPV780"  "PPV808"  "PPV842"  "PPV856"  "PPV875"  "PPV890"  "PPV934"  "PPV942"  "PPV988" 
+[90m# A tibble: 6 x 9[39m
+  protein sample  protein_abundance batch plex  phenotype pheno   sample_f plex_f
+  [3m[90m<chr>[39m[23m   [3m[90m<chr>[39m[23m               [3m[90m<dbl>[39m[23m [3m[90m<chr>[39m[23m [3m[90m<chr>[39m[23m [3m[90m<chr>[39m[23m     [3m[90m<chr>[39m[23m   [3m[90m<fct>[39m[23m    [3m[90m<ord>[39m[23m 
+[90m1[39m A1BG    Pool1.6            0.011[4m3[24m B     2.1   Pool1     Control 2.1      2.1   
+[90m2[39m A2M     Pool1.6           -[31m1[39m[31m.[39m[31m00[39m   B     2.1   Pool1     Control 2.1      2.1   
+[90m3[39m ABHD14B Pool1.6            0.166  B     2.1   Pool1     Control 2.1      2.1   
+[90m4[39m ABI3BP  Pool1.6            0.585  B     2.1   Pool1     Control 2.1      2.1   
+[90m5[39m ACAN    Pool1.6            0.100  B     2.1   Pool1     Control 2.1      2.1   
+[90m6[39m ACHE    Pool1.6            0.980  B     2.1   Pool1     Control 2.1      2.1   
+[90m# A tibble: 6 x 1[39m
+  sample 
+  [3m[90m<chr>[39m[23m  
+[90m1[39m Pool1.6
+[90m2[39m Pool1.6
+[90m3[39m Pool1.6
+[90m4[39m Pool1.6
+[90m5[39m Pool1.6
+[90m6[39m Pool1.6
+[90m# A tibble: 36 x 1[39m
+   sample 
+   [3m[90m<chr>[39m[23m  
+[90m 1[39m Pool1.6
+[90m 2[39m PPV193 
+[90m 3[39m PPV229 
+[90m 4[39m PPV232 
+[90m 5[39m PPV423 
+[90m 6[39m PPV503 
+[90m 7[39m PPV508 
+[90m 8[39m PPV516 
+[90m 9[39m PPV526 
+[90m10[39m Pool1.7
+[90m# … with 26 more rows[39m
+[1] "c(\"Pool1.6\", \"PPV193\", \"PPV229\", \"PPV232\", \"PPV423\", \"PPV503\", \"PPV508\", \"PPV516\", \"PPV526\", \"Pool1.7\", \"PPV242\", \"PPV334\", \"PPV377\", \"PPV554\", \"PPV661\", \"PPV715\", \"PPV728\", \"PPV808\", \"Pool1.8\", \"PPV519\", \"PPV546\", \"PPV780\", \"PPV842\", \"PPV856\", \"PPV890\", \"PPV934\", \"PPV942\", \"Pool1.9\", \"PPV315\", \"PPV414\", \"PPV449\", \"PPV523\", \"PPV632\", \"PPV682\", \"PPV875\", \"PPV988\")"
+[90m# A tibble: 36 x 1[39m
+   sample 
+   [3m[90m<chr>[39m[23m  
+[90m 1[39m Pool1.6
+[90m 2[39m PPV193 
+[90m 3[39m PPV229 
+[90m 4[39m PPV232 
+[90m 5[39m PPV423 
+[90m 6[39m PPV503 
+[90m 7[39m PPV508 
+[90m 8[39m PPV516 
+[90m 9[39m PPV526 
+[90m10[39m Pool1.7
+[90m# … with 26 more rows[39m
+[[1]]
+[90m# A tibble: 36 x 1[39m
+   sample 
+   [3m[90m<chr>[39m[23m  
+[90m 1[39m Pool1.6
+[90m 2[39m PPV193 
+[90m 3[39m PPV229 
+[90m 4[39m PPV232 
+[90m 5[39m PPV423 
+[90m 6[39m PPV503 
+[90m 7[39m PPV508 
+[90m 8[39m PPV516 
+[90m 9[39m PPV526 
+[90m10[39m Pool1.7
+[90m# … with 26 more rows[39m
+
+$sample
+ [1] "Pool1.6" "PPV193"  "PPV229"  "PPV232"  "PPV423"  "PPV503"  "PPV508"  "PPV516"  "PPV526"  "Pool1.7" "PPV242"  "PPV334"  "PPV377"  "PPV554"  "PPV661"  "PPV715"  "PPV728"  "PPV808" 
+[19] "Pool1.8" "PPV519"  "PPV546"  "PPV780"  "PPV842"  "PPV856"  "PPV890"  "PPV934"  "PPV942"  "Pool1.9" "PPV315"  "PPV414"  "PPV449"  "PPV523"  "PPV632"  "PPV682"  "PPV875"  "PPV988" 
+
+[1] "c(\"Pool1.6\", \"PPV193\", \"PPV229\", \"PPV232\", \"PPV423\", \"PPV503\", \"PPV508\", \"PPV516\", \"PPV526\", \"Pool1.7\", \"PPV242\", \"PPV334\", \"PPV377\", \"PPV554\", \"PPV661\", \"PPV715\", \"PPV728\", \"PPV808\", \"Pool1.8\", \"PPV519\", \"PPV546\", \"PPV780\", \"PPV842\", \"PPV856\", \"PPV890\", \"PPV934\", \"PPV942\", \"Pool1.9\", \"PPV315\", \"PPV414\", \"PPV449\", \"PPV523\", \"PPV632\", \"PPV682\", \"PPV875\", \"PPV988\")"
+[1] "bar" "foo"
+ [1] "Pool1.6" "PPV193"  "PPV229"  "PPV232"  "PPV423"  "PPV503"  "PPV508"  "PPV516"  "PPV526"  "Pool1.7" "PPV242"  "PPV334"  "PPV377"  "PPV554"  "PPV661"  "PPV715"  "PPV728"  "PPV808" 
+[19] "Pool1.8" "PPV519"  "PPV546"  "PPV780"  "PPV842"  "PPV856"  "PPV890"  "PPV934"  "PPV942"  "Pool1.9" "PPV315"  "PPV414"  "PPV449"  "PPV523"  "PPV632"  "PPV682"  "PPV875"  "PPV988" 
+ [1] "Pool1.6" "PPV193"  "PPV229"  "PPV232"  "PPV423"  "PPV503"  "PPV508"  "PPV516"  "PPV526"  "Pool1.7" "PPV242"  "PPV334"  "PPV377"  "PPV554"  "PPV661"  "PPV715"  "PPV728"  "PPV808" 
+[19] "Pool1.8" "PPV519"  "PPV546"  "PPV780"  "PPV842"  "PPV856"  "PPV890"  "PPV934"  "PPV942"  "Pool1.9" "PPV315"  "PPV414"  "PPV449"  "PPV523"  "PPV632"  "PPV682"  "PPV875"  "PPV988" 
+-/                                                                                                                                                                                            [1] "#00441B" "#238B45" "#74C476" "#C7E9C0"
+NULL
+        phenotype plex
+PPV193    Control  2.1
+PPV229    Control  2.1
+PPV232    Control  2.1
+PPV423      PDR-L  2.1
+PPV503      PDR-L  2.1
+PPV508      PDR-L  2.1
+PPV516      PDR-M  2.1
+PPV526      PDR-M  2.1
+Pool1.6     Pool1  2.1
+PPV242    Control  2.2
+PPV334    Control  2.2
+PPV377    Control  2.2
+PPV554      PDR-L  2.2
+PPV715      PDR-L  2.2
+PPV728      PDR-L  2.2
+PPV661      PDR-M  2.2
+PPV808      PDR-M  2.2
+Pool1.7     Pool1  2.2
+PPV519    Control  2.3
+PPV546    Control  2.3
+PPV780      PDR-L  2.3
+PPV842      PDR-L  2.3
+PPV856      PDR-L  2.3
+PPV942      PDR-L  2.3
+PPV890      PDR-M  2.3
+PPV934      PDR-M  2.3
+Pool1.8     Pool1  2.3
+PPV875    Control  2.4
+PPV988    Control  2.4
+PPV315      PDR-H  2.4
+PPV414      PDR-H  2.4
+PPV449      PDR-H  2.4
+PPV523      PDR-H  2.4
+PPV632      PDR-H  2.4
+PPV682      PDR-H  2.4
+Pool1.9     Pool1  2.4
+pdf 
+  4 
+-/                                                                                                                                                                                            -/                                                                                                                                                                                            pdf 
+  5 
+pdf 
+  6 
+pdf 
+  7 
+pdf 
+  2 
+null device 
+          1 
+-/                                                                                                                                                                                            -/                                                                                                                                                                                            null device 
+          1 
+
+> # Oculomics analysis, visualizations for proteomics experiment 2
+> # jinquma/ cgates 
+> # 2/10/2021
+> 
+> #setwd('/nfs/mm-isilon/bioinfcore/ActivePro .... [TRUNCATED] 
+
+> script_name = "exp2_figures" 
+
+> log_start(paste0(output_logs_dir, script_name, ".log")) 
+[1] "/Volumes/nfs/mm-isilon/bioinfcore/ActiveProjects/Oculomics_tomwgard_CU3-power_analysis_cgates_jingquma/cgates_analysis"
+
+> library(GGally)
+
+> library(tidyverse)
+
+> library(RColorBrewer)
+
+> ###############################################################################
+> ## Setup data structures
+> ####################################### .... [TRUNCATED] 
+
+> dat_gene <- dat_gene %>% rename(
++   Pool1.6=Pool12,
++   Pool1.7=Pool13,
++   Pool1.8=Pool14,
++   Pool1.9=Pool15
++ )
+
+> #view(dat_gene)
+> 
+> ###############################################################################
+> ## Load sample phenotype design
+> # Focus to  .... [TRUNCATED] 
+
+> pheno$sample <- recode(pheno$sample, 
++    `Pool12`="Pool1.6",
++    `Pool13`="Pool1.7",
++    `Pool14`="Pool1.8",
++    `Pool15`="Pool1.9")
+
+> #pheno$sample
+> 
+> pheno$plex <- recode(pheno$plex, 
++                      `0`="1",
++                      `1`="2.1",
++                      `2`="2 ..." ... [TRUNCATED] 
+
+> #pheno$plex
+> 
+> batch="B"
+
+> myplex=as.character(pheno$sample[pheno$batch==batch])
+
+> #view(myplex)
+> all_abundances = dat_gene[names(dat_gene) %in% myplex]
+
+> mydat = dat_gene[names(dat_gene) %in% myplex]
+
+> mydat = mydat %>% drop_na() # Drop NAs to create dense matrix
+
+> #colnames(mydat)
+> 
+> design=pheno[pheno$sample %in% colnames(mydat),]
+
+> #Reset phenotype names
+> design$phenotype <- recode(design$phenotype, 
++        `PDR-Clear` = "PDR-L",
++        `PDR-Yellow` = "PDR-M",
++        `PD .... [TRUNCATED] 
+
+> design=design[match(colnames(mydat), design$sample ),]
+
+> #rownames_to_column(head(mydat), var='protein')
+> 
+> 
+> ###############################################################################
+> ## Plottin .... [TRUNCATED] 
+
+> temp_df$sample_f = factor(temp_df$sample, 
++                           levels=unique(temp_df$sample[order(temp_df$plex, temp_df$sample)])
++          .... [TRUNCATED] 
+
+> #temp_df$sample_f = reorder(temp_df$plex, temp_df$sample_f)
+> levels(temp_df$sample_f)
+ [1] "Pool1.6" "PPV193"  "PPV229"  "PPV232"  "PPV423"  "PPV503"  "PPV508"  "PPV516"  "PPV526"  "Pool1.7" "PPV242"  "PPV334"  "PPV377"  "PPV554"  "PPV661"  "PPV715"  "PPV728"  "PPV808" 
+[19] "Pool1.8" "PPV519"  "PPV546"  "PPV780"  "PPV842"  "PPV856"  "PPV890"  "PPV934"  "PPV942"  "Pool1.9" "PPV315"  "PPV414"  "PPV449"  "PPV523"  "PPV632"  "PPV682"  "PPV875"  "PPV988" 
+
+> temp_df$plex_f = factor(temp_df$plex, levels=c('2.1','2.2','2.3','2.4'), ordered=TRUE)
+
+> temp_df = temp_df[order(temp_df$plex_f, temp_df$sample_f),]
+
+> #temp_df = na.omit(temp_df)
+> plex_colors = colors_sequential_greens
+
+> p = ggplot(temp_df, aes(x=sample_f, y=protein_abundance, fill=plex_f)) +
++   geom_boxplot(color=alpha('black', 0.7)) +
++   scale_fill_manual(values= .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-normalized_abundance_boxplot.pdf'), 
++        plot = p, 
++        width = 10, height = 1 .... [TRUNCATED] 
+
+> ###############################################################################
+> ## exp2_pairwise_scatter_pools.pdf
+> 
+> p_ <- GGally::print_if_int .... [TRUNCATED] 
+
+> grid.draw.gg <- function(x){
++   print(x)
++ }
+
+> # A custom upper function that simplifies the correlation matrix to suppress
+> # the "Corr:" label
+> upper_fn <- function(
++   data,
++   mapping,
++  .... [TRUNCATED] 
+
+> # Ensures the scales are consistent across subplots
+> lower_fun <- function(data,mapping, min_all, max_all){
++   ggplot(data = data, mapping = mappi .... [TRUNCATED] 
+
+> # Just print the sample names on the diag
+> diag_fn <- function (data, mapping) {
++   label <- gsub('`', '', mapping_string(mapping$x))
++   p <- gga .... [TRUNCATED] 
+
+> temp_normalized_pools_df = mydat %>% select(starts_with('Pool'))
+
+> #view(temp_normalized_pools_df)
+> 
+> max_all = max(temp_normalized_pools_df)
+
+> min_all = min(temp_normalized_pools_df)
+
+> p = ggpairs(temp_normalized_pools_df,
++             lower = list(continuous = wrap(lower_fun, min_all=min_all, max_all=max_all)),
++             uppe .... [TRUNCATED] 
+
+> p_(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-pairwise_scatter_pools.pdf'), 
++        plot = p, 
++        width = 10, height = 10)
+
+> ###############################################################################
+> ## pca.pdf
+> 
+> pc = prcomp(t(mydat))
+
+> temp = summary(pc)
+
+> plex_shapes = c(19, 17, 15, 18)
+
+> proportion_variance = 100 * round(summary(pc)$importance[2,][1:2], 2)
+
+> datt=data.frame(pheno=design$pheno,
++                 plex=factor(design$plex),
++                 PCA=pc$x[,1:2],
++                 sample=design$sa .... [TRUNCATED] 
+
+> #view(datt)
+> p=ggplot(datt, aes(x=PCA.PC1, y=PCA.PC2, shape=plex, color=phenotype)) + 
++   geom_point(size=5) +
++   scale_color_manual(values = col .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename = paste0(output_figures_dir, script_name, '-pca.pdf'), 
++        plot = p, 
++        width = 10, height = 6.6)
+
+> ###############################################################################
+> ## Heatmap annotated with plasma/erythrocyte: all proteins
+> ## ex .... [TRUNCATED] 
+
+> protein_accession <- protein %>% separate(Proteins, c(NA, "uniprot", NA),  sep="\\|", remove = TRUE)
+
+> #head(protein_accession)
+> 
+> plasma=readxl::read_xlsx("inputs/List_20 Plasma Proteins_Uniprot Accession.xlsx", skip = 2) %>%select("Accession (Unip ..." ... [TRUNCATED] 
+-/                                                                                                                                                                                            
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[1:14]="Yes"
+
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[15:23]="No"
+
+> plasma = plasma %>% rename("uniprot"="Accession (Uniprot)", plasma="Depleted by Pierce Top12 Column (Yes/No)")
+
+> annotated_protein_accession = protein_accession %>% left_join(plasma)
+
+> rownames(annotated_protein_accession) = rownames(protein_accession)
+
+> annotated_protein_accession$plasma = recode(annotated_protein_accession$plasma,
++                                             "Yes"= "depleted but p ..." ... [TRUNCATED] 
+
+> erythrocyte_gene_symbols = c("ACTB", "HBG2", "CA2", "HBA1", "HBB", "HBD", "BLVRB", "BPGM", "PRDX2", "CA1", "CAT")
+
+> annotated_protein_accession$erythrocyte = rownames(annotated_protein_accession) %in% erythrocyte_gene_symbols
+
+> annotated_protein_accession$erythrocyte = ifelse(annotated_protein_accession$erythrocyte=="TRUE", "present", NA)
+
+> annotation_row=data.frame(
++   plasma=as.factor(annotated_protein_accession$plasma),
++   RBC=as.factor(annotated_protein_accession$erythrocyte),
++   .... [TRUNCATED] 
+
+> annotation_col = data.frame(phenotype=design$phenotype, plex=design$plex)
+
+> rownames(annotation_col)=colnames(mydat)
+
+> annotation_colors=list(phenotype=c("Pool1"=colors_subphenotype[1], 
++                                    "Control"=colors_subphenotype[2], 
++        .... [TRUNCATED] 
+
+> pdf(file=paste0(output_figures_dir, script_name, '-heatmap_all_annotated.pdf'),
++     width=14,
++     height=10)
+
+> pheatmap::pheatmap(
++   mydat,
++   clustering_method="ward.D",
++   color = colorRampPalette(c("blue", "white", "red"))(50),
++   annotation_row = ann .... [TRUNCATED] 
+
+> dev.off()
+pdf 
+  4 
+
+> ###############################################################################
+> ## Heatmap annotated with plasma/erythrocyte: Exclude plasma and e .... [TRUNCATED] 
+
+> protein_accession <- protein %>% separate(Proteins, c(NA, "uniprot", NA),  sep="\\|", remove = TRUE, extra = "drop")
+
+> #head(protein_accession)
+> 
+> plasma=readxl::read_xlsx("inputs/List_20 Plasma Proteins_Uniprot Accession.xlsx", skip = 2) %>%select("Accession (Unip ..." ... [TRUNCATED] 
+-/                                                                                                                                                                                            
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[1:14]="Yes"
+
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[15:23]="No"
+
+> plasma = plasma %>% rename("uniprot"="Accession (Uniprot)", plasma="Depleted by Pierce Top12 Column (Yes/No)")
+
+> annotated_protein_accession = protein_accession %>% left_join(plasma)
+
+> rownames(annotated_protein_accession) = rownames(protein_accession)
+
+> annotated_protein_accession$plasma = recode(annotated_protein_accession$plasma,
++                                             "Yes"= "depleted but p ..." ... [TRUNCATED] 
+
+> erythrocyte_gene_symbols = c("ACTB", "HBG2", "CA2", "HBA1", "HBB", "HBD", "BLVRB", "BPGM", "PRDX2", "CA1", "CAT")
+
+> annotated_protein_accession$erythrocyte = rownames(annotated_protein_accession) %in% erythrocyte_gene_symbols
+
+> annotated_protein_accession$erythrocyte = ifelse(annotated_protein_accession$erythrocyte=="TRUE", "present", NA)
+
+> #head(annotated_protein_accession)
+> 
+> annotation_row=data.frame(
++   plasma=as.factor(annotated_protein_accession$plasma),
++   RBC=as.factor(annot .... [TRUNCATED] 
+
+> annotation_col = data.frame(phenotype=design$phenotype, plex=design$plex)
+
+> rownames(annotation_col)=colnames(mydat)
+
+> annotation_colors=list(phenotype=c("Pool1"=colors_subphenotype[1], 
++                                    "Control"=colors_subphenotype[2], 
++        .... [TRUNCATED] 
+
+> subset_genes = mydat[!(rowSums(is.na(annotation_row)) != ncol(annotation_row)),]
+
+> pdf(file=paste0(output_figures_dir, script_name, '-heatmap_exclude_erythrocyte_plasma_annotated.pdf'),
++     width=14, height=10)
+
+> pheatmap::pheatmap(
++   subset_genes,
++   clustering_method="ward.D",
++   color = colorRampPalette(c("blue", "white", "red"))(50),
++   annotation_ro .... [TRUNCATED] 
+
+> dev.off()
+pdf 
+  2 
+
+> ###############################################################################
+> ## Heatmap annotated with plasma/erythrocyte: Only plasma and eryt .... [TRUNCATED] 
+
+> protein_accession <- protein %>% separate(Proteins, c(NA, "uniprot", NA),  sep="\\|", remove = TRUE, extra = 'drop')
+
+> #head(protein_accession)
+> 
+> plasma=readxl::read_xlsx("inputs/List_20 Plasma Proteins_Uniprot Accession.xlsx", skip = 2) %>%select("Accession (Unip ..." ... [TRUNCATED] 
+-/                                                                                                                                                                                            
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[1:14]="Yes"
+
+> plasma$`Depleted by Pierce Top12 Column (Yes/No)`[15:23]="No"
+
+> plasma = plasma %>% rename("uniprot"="Accession (Uniprot)", plasma="Depleted by Pierce Top12 Column (Yes/No)")
+
+> annotated_protein_accession = protein_accession %>% left_join(plasma)
+
+> rownames(annotated_protein_accession) = rownames(protein_accession)
+
+> annotated_protein_accession$plasma = recode(annotated_protein_accession$plasma,
++                                             "Yes"= "depleted but p ..." ... [TRUNCATED] 
+
+> erythrocyte_gene_symbols = c("ACTB", "HBG2", "CA2", "HBA1", "HBB", "HBD", "BLVRB", "BPGM", "PRDX2", "CA1", "CAT")
+
+> annotated_protein_accession$erythrocyte = rownames(annotated_protein_accession) %in% erythrocyte_gene_symbols
+
+> annotated_protein_accession$erythrocyte = ifelse(annotated_protein_accession$erythrocyte=="TRUE", "present", NA)
+
+> #head(annotated_protein_accession)
+> 
+> annotation_row=data.frame(
++   plasma=as.factor(annotated_protein_accession$plasma),
++   RBC=as.factor(annot .... [TRUNCATED] 
+
+> annotation_col = data.frame(phenotype=design$phenotype, plex=design$plex)
+
+> rownames(annotation_col)=colnames(mydat)
+
+> annotation_colors=list(phenotype=c("Pool1"=colors_subphenotype[1], 
++                                    "Control"=colors_subphenotype[2], 
++        .... [TRUNCATED] 
+
+> subset_genes = mydat[rowSums(is.na(annotation_row)) <2,]
+
+> pdf(file=paste0(output_figures_dir, script_name, '-heatmap_only_erythrocyte_plasma_annotated.pdf'),
++     width=14, height=10)
+
+> pheatmap::pheatmap(
++   subset_genes,
++   clustering_method="ward.D",
++   color = colorRampPalette(c("blue", "white", "red"))(50),
++   annotation_ro .... [TRUNCATED] 
+
+> dev.off()
+pdf 
+  3 
+
+> print('Done')
+[1] "Done"
+
+> ###############################################################################
+> log_stop()
+-/                                                                                                                                                                                            null device 
+          1 
+null device 
+          1 
+NULL
+-/                                                                                                                                                                                            null device 
+          1 
+-/                                                                                                                                                                                            NULL
+null device 
+          1 
+-/                                                                                                                                                                                            null device 
+          1 
+null device 
+          1 

@@ -1,0 +1,289 @@
+[1] "/Volumes/nfs/mm-isilon/bioinfcore/ActiveProjects/Oculomics_tomwgard_CU3-power_analysis_cgates_jingquma/cgates_analysis"
+
+> library(effsize) #https://www.rdocumentation.org/packages/effsize/versions/0.8.1/topics/cohen.d
+
+> library(RColorBrewer)
+
+> library(ggrepel)
+
+> library(ssize.fdr)
+
+> library(tidyverse)
+
+> ###############################################################################
+> ## Setup data structures
+> ####################################### .... [TRUNCATED] 
+
+> design_df = read.csv("inputs/design.csv") 
+
+> design_df = design_df[design_df$batch==batch,] %>% 
++   filter(!str_detect(sample, 'Pool'))
+
+> design_df$phenotype <- recode(design_df$phenotype, 
++                            `PDR-Clear` = "PDR-L",
++                            `PDR-Yellow` =  .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Load normalized abundance and design
+> # Drop NAs to create den .... [TRUNCATED] 
+
+> normalized_abundance_df = normalized_abundance_df %>%
++   drop_na() %>% 
++   select(design_df$sample)
+
+> # Ensure abundance column names and phenotype row names are consistent
+> design_df= design_df[match(colnames(normalized_abundance_df), design_df$sam .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Model diffex across groups
+> #design_matrix = model.matrix(~as. .... [TRUNCATED] 
+
+> head(diffex_df)
+           logFC     t.ord     t.mod        p.ord        p.mod        q.ord        q.mod df.r     df.0      s2.0        s2   s2.post protein
+SPOCK2 -1.489906 -6.642915 -6.802237 2.347697e-07 8.564606e-08 1.610579e-05 7.105998e-06   30 3.529042 0.1937226 0.3458381 0.3298274  Q92563
+PRDX2   3.879665  6.421523  6.758105 4.319221e-07 9.740904e-08 1.610579e-05 7.105998e-06   30 3.529042 0.1937226 2.5094882 2.2657462  P32119
+PSMA1   1.937466  6.302876  6.549405 5.998708e-07 1.794043e-07 1.789470e-05 7.842348e-06   30 3.529042 0.1937226 0.6496263 0.6016409  P25786
+GAPDH   1.946467  6.230909  6.478107 7.325309e-07 2.211921e-07 1.821006e-05 7.842348e-06   30 3.529042 0.1937226 0.6709097 0.6206842  P04406
+PSMB1   2.033175  6.036469  6.290412 1.259203e-06 3.844793e-07 2.244986e-05 7.842348e-06   30 3.529042 0.1937226 0.7799313 0.7182309  P20618
+GPI     0.843887  6.509857  6.289686 3.384826e-07 3.853045e-07 1.610579e-05 7.842348e-06   30 3.529042 0.1937226 0.1155310 0.1237609  P06744
+
+> ###############################################################################
+> ## Calculate the Cohen's d (Hedge-adjusted) effect size, pooled sd .... [TRUNCATED] 
+
+> cohen_hedges_fn = function (data_row) {
++   cohen_d = cohen.d(as.matrix(data_row), phenotypes, hedges.correction=TRUE, conf.level=0.95)
++   list(del .... [TRUNCATED] 
+
+> effect_size_df = data.frame(bind_rows(apply(normalized_abundance_df, 1, cohen_hedges_fn)), row.names=rownames(normalized_abundance_df))
+
+> effect_size_df$abs_effect_ntile = ntile(abs(effect_size_df$effect_size), 100)
+
+> ###############################################################################
+> ## Export supplemental data table
+> supplemental_data_export_df =  .... [TRUNCATED] 
+
+> write.table(supplemental_data_export_df, 
++             paste0(output_data_dir, script_name, '-gene_effect_size_diffex.tsv'),
++             row.name .... [TRUNCATED] 
+
+> ###############################################################################
+> ## Plotting
+> #################################################### .... [TRUNCATED] 
+
+> color_pink = color_paired_palette[5]
+
+> color_blue = color_paired_palette[2]
+
+> color_control = colors_subphenotype[2]
+
+> color_pdr_l = colors_subphenotype[3]
+
+> color_pdr_m = colors_subphenotype[4]
+
+> color_pdr_h = colors_subphenotype[5]
+
+> ## Setup a basic df to drive plotting
+> plot_df = data.frame(effect_size_df)
+
+> plot_df$abs_effect_size = abs(plot_df$effect_size)
+
+> plot_df$abs_confidence_interval_95_lower = ifelse(plot_df$effect_size<0, -1 * plot_df$confidence_interval_95_upper, plot_df$confidence_interval_95_l .... [TRUNCATED] 
+
+> plot_df$abs_confidence_interval_95_upper = ifelse(plot_df$effect_size<0, -1 * plot_df$confidence_interval_95_lower, plot_df$confidence_interval_95_u .... [TRUNCATED] 
+
+> plot_df$gene = rownames(plot_df)
+
+> plot_df = plot_df %>% inner_join(rownames_to_column(diffex_df[,c('p.mod','q.mod')], 'gene'), by='gene')
+
+> plot_df$inverse_pooled_sd = 1/plot_df$pooled_sd
+
+> plot_df = plot_df %>% 
++    mutate(adjusted_p_value_f =  case_when(
++      `q.mod` <= 0.01 ~ '<= 0.01',
++      `q.mod` <= 0.05 ~ '<= 0.05',
++      ` .... [TRUNCATED] 
+
+> plot_df$adjusted_p_value_f = factor(plot_df$adjusted_p_value_f, 
++                               levels=c("<= 0.01", "<= 0.05", "<= 0.10", "> 0.10") .... [TRUNCATED] 
+
+> plot_df=plot_df[order(plot_df$effect_size, plot_df$gene),]
+
+> plot_df$selected_gene = plot_df$gene %in% c("CA2", "SERPINA1", "SPINK1", "NEO1")
+
+> plot_df$gene_label = ""
+
+> plot_df[plot_df$selected_gene,]$gene_label = plot_df[plot_df$selected_gene,]$gene
+
+> # HEY: be careful because while these factors are useful for plotting, you have 
+> # to be deliberate and add them if you want to talk about proport .... [TRUNCATED] 
+
+> addmargins(apv_t)
+
+<= 0.01 <= 0.05 <= 0.10  > 0.10     Sum 
+    308     144     121     154     727 
+
+> prop.table(apv_t)
+
+  <= 0.01   <= 0.05   <= 0.10    > 0.10 
+0.4236589 0.1980743 0.1664374 0.2118294 
+
+> ###############################################################################
+> ## exp2_pvalue_histogram.pdf
+> p = ggplot(plot_df, aes(x=p.mod)) + .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-pvalue_histogram.pdf'),
++        plot=p, width=10, height=10)
+
+> ###############################################################################
+> ## exp2_adjusted_pvalue_histogram.pdf
+> colors <- c(rep(colors_seq .... [TRUNCATED] 
+
+> p = ggplot(plot_df, aes(x=q.mod)) + 
++   geom_histogram(bins=100, aes(fill=adjusted_p_value_f)) +
++   scale_fill_manual(values = colors_sequential_g .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-adjusted_pvalue_histogram.pdf'),
++        plot=p, 
++        width=10, height=10)
+
+> ###############################################################################
+> ## exp2_effect_size_scatter.pdf
+> p = ggplot(plot_df, aes(x=delta_ .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-effect_size_scatter.pdf'),
++        plot=p,
++        width=10, height=10)
+
+> ###############################################################################
+> ## exp2_power_estimated_effect_size_lineplot.pdf
+> 
+> temp_df = pl .... [TRUNCATED] 
+
+> temp_df$x = seq.int(nrow(temp_df))
+
+> tail(temp_df,1)
+    delta_mean pooled_sd effect_size confidence_interval_95_lower confidence_interval_95_upper abs_effect_ntile abs_effect_size abs_confidence_interval_95_lower
+667   1.452345   0.58808    2.469639                     1.492827                      3.44645              100        2.469639                         1.492827
+    abs_confidence_interval_95_upper   gene        p.mod        q.mod inverse_pooled_sd adjusted_p_value_f selected_gene gene_label   x
+667                          3.44645 SPOCK2 8.564606e-08 7.105998e-06          1.700449            <= 0.01         FALSE            727
+
+> p = ggplot(temp_df, 
++            aes(x=x, y=abs_effect_size, color=adjusted_p_value_f)) + 
++   scale_color_manual(breaks=c('<= 0.01', '<= 0.05', '< .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-estimated_effect_size_lineplot.pdf'),
++        plot=p,
++        width=10, height=10)
+
+> ###############################################################################
+> ## exp2_select_genes_phenotype_boxplots.pdf
+> gene_sample_values = .... [TRUNCATED] 
+
+> tall_gene_sample_values = cbind(gene_sample_values[c("sample", "pheno")], stack(gene_sample_values[plot_df$gene[plot_df$selected_gene]]))
+
+> colnames(tall_gene_sample_values) = c('sample', 'pheno', 'values', 'gene')
+
+> tall_gene_sample_values$gene_f = factor(tall_gene_sample_values$gene, levels=c('SERPINA1', 'NEO1', 'SPINK1', 'CA2'))
+
+> tall_gene_sample_values$phenotype = factor(tall_gene_sample_values$pheno, levels=c('PDR', 'Control'))
+
+> p = ggplot(tall_gene_sample_values, aes(x=phenotype, y=values, fill = phenotype)) +
++   geom_violin(linetype='blank') +
++   stat_summary(fun.data=me .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-select_genes_phenotype_boxplots.pdf'), 
++        plot=p,
++        width=10, height=10)
+
+> ###############################################################################
+> ## exp2_power_select_genes_qqplots.pdf
+> p = ggplot(tall_gene_samp .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-select_genes_qqplots.pdf'), 
++        plot=p,
++        width=10, height=10)
+
+> temp_df= tall_gene_sample_values[tall_gene_sample_values$gene=='CA2' & tall_gene_sample_values$phenotype=='PDR',]
+
+> shapiro.test(temp_df$values)
+
+	Shapiro-Wilk normality test
+
+data:  temp_df$values
+W = 0.92568, p-value = 0.09972
+
+
+> ###############################################################################
+> ## exp2_select_genes_subphenotype_boxplots.pdf
+> gene_sample_value .... [TRUNCATED] 
+
+> tall_gene_sample_values = cbind(gene_sample_values[c("sample", "phenotype")], stack(gene_sample_values[plot_df$gene[plot_df$selected_gene]]))
+
+> colnames(tall_gene_sample_values) = c('sample', 'phenotype', 'values', 'gene')
+
+> tall_gene_sample_values$gene_f = factor(tall_gene_sample_values$gene, levels=c('SERPINA1', 'NEO1', 'SPINK1', 'CA2'))
+
+> tall_gene_sample_values$phenotype = factor(tall_gene_sample_values$phenotype, levels=c('PDR-H', 'PDR-M', 'PDR-L', 'Control'))
+
+> pheno_colors = c(color_pdr_h, color_pdr_m, color_pdr_l, color_control)
+
+> p = ggplot(tall_gene_sample_values, aes(x=phenotype, y=values, fill = phenotype)) +
++   geom_violin(linetype='blank') +
++   stat_summary(fun.data=me .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-select_genes_subphenotype_boxplots.pdf'),
++        plot=p,
++        width=10, height=10)
+
+> ###############################################################################
+> ## exp2_prospective_power_by_effect_size.pdf
+> named_genes = c('CA .... [TRUNCATED] 
+
+> power_fn <- function(x) {
++   fdr = 0.05
++   desired_power = 0.8
++   pi0 = 0.7
++   max_samples = 25
++   power=ssize.twoSamp(delta = as.double(x[2]), .... [TRUNCATED] 
+
+> temp = plot_df[plot_df$gene %in% named_genes, c('gene', 'delta_mean', 'pooled_sd', 'abs_effect_ntile')]
+
+> rownames(temp) = temp$gene
+
+> temp$gene_factor = paste0(temp$gene, " (", temp$abs_effect_ntile, "%)")
+
+> power_df = do.call(rbind, apply(temp[, c('gene', 'delta_mean', 'pooled_sd')], 1, power_fn)) 
+
+> power_df = power_df %>% inner_join(temp[,c('gene', 'gene_factor')])
+
+> power_df$gene_factor=factor(power_df$gene_factor, levels = temp[named_genes, 'gene_factor'])
+
+> p = ggplot(power_df, aes(x=n, y=power, color=gene_factor)) +
++   theme_classic() +
++   theme(text = element_text(size=30), 
++         legend.positio .... [TRUNCATED] 
+
+> plot(p)
+
+> ggsave(filename=paste0(output_figures_dir, script_name, '-prospective_power_by_effect_size.pdf'), 
++        plot=p, width=10, height=10)
+
+> print('Done')
+[1] "Done"
+
+> ###############################################################################
+> log_stop()

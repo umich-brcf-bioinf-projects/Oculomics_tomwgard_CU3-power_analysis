@@ -1,0 +1,51 @@
+﻿sample,batch,plex,phenotype,pheno
+PPV203,A,0,Control,Control
+PPV210,A,0,Control,Control
+PPV298,A,0,Control,Control
+PPV322,A,0,Control,Control
+PPV415,A,0,Control,Control
+Pool1-1,A,0,Pool1,Pool1
+Pool1-2,A,0,Pool1,Pool1
+Pool1-3,A,0,Pool1,Pool1
+Pool1-4,A,0,Pool1,Pool1
+Pool1-5,A,0,Pool1,Pool1
+PPV193,B,1,Control,Control
+PPV229,B,1,Control,Control
+PPV232,B,1,Control,Control
+PPV423,B,1,PDR-Clear,PDR
+PPV503,B,1,PDR-Clear,PDR
+PPV508,B,1,PDR-Clear,PDR
+PPV516,B,1,PDR-Yellow,PDR
+PPV526,B,1,PDR-Yellow,PDR
+Pool12,B,1,Pool1,Control
+Pool2,B,1,Pool 2,Control
+PPV242,B,2,Control,Control
+PPV334,B,2,Control,Control
+PPV377,B,2,Control,Control
+PPV554,B,2,PDR-Clear,PDR
+PPV715,B,2,PDR-Clear,PDR
+PPV728,B,2,PDR-Clear,PDR
+PPV661,B,2,PDR-Yellow,PDR
+PPV808,B,2,PDR-Yellow,PDR
+Pool13,B,2,Pool1,Control
+Pool2,B,2,Pool 2,Control
+PPV519,B,3,Control,Control
+PPV546,B,3,Control,Control
+PPV780,B,3,PDR-Clear,PDR
+PPV842,B,3,PDR-Clear,PDR
+PPV856,B,3,PDR-Clear,PDR
+PPV942,B,3,PDR-Clear,PDR
+PPV890,B,3,PDR-Yellow,PDR
+PPV934,B,3,PDR-Yellow,PDR
+Pool14,B,3,Pool1,Control
+Pool2,B,3,Pool 2,Control
+PPV875,B,4,Control,Control
+PPV988,B,4,Control,Control
+PPV315,B,4,PDR-Red,PDR
+PPV414,B,4,PDR-Red,PDR
+PPV449,B,4,PDR-Red,PDR
+PPV523,B,4,PDR-Red,PDR
+PPV632,B,4,PDR-Red,PDR
+PPV682,B,4,PDR-Red,PDR
+Pool15,B,4,Pool1,Control
+Pool2,B,4,Pool 2,Control
